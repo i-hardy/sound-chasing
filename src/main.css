@@ -1,6 +1,13 @@
-body {
-  position: relative;
+html, body {
   font-family: sans-serif;
+  height: 100%;
+  width: 100%;
+}
+
+#dotsContainer {
+  position: relative;
+  height: 100%;
+  width: 100%;
 }
 
 .dot {
@@ -10,7 +17,7 @@ body {
   width: 40px;
   content: '';
   border-radius: 50%;
-  animation: fade-in-out 1.5s ease-in-out;
+  animation: fade-in-out 1s ease-in-out;
 }
 
 @keyframes fade-in-out {
