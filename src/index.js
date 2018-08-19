@@ -1,5 +1,5 @@
-import { fromEvent, of, timer } from 'rxjs';
-import { tap, map, concatMap, throttleTime, repeat } from 'rxjs/operators';
+import { fromEvent, of, timer, zip } from 'rxjs';
+import { map, last, concatMap, throttleTime, repeat } from 'rxjs/operators';
 import Tone from 'tone';
 import randomColor from 'randomcolor';
 
@@ -33,7 +33,7 @@ let score = 0;
 
 const clickObservable = fromEvent(document, 'click')
   .pipe(map((click) => { return [click.clientX, click.clientY] }))
-  .pipe(throttleTime(500));
+  // .pipe(throttleTime(500));
 
 const minXY = 20;
 const maxX = window.innerWidth;
@@ -45,27 +45,27 @@ function createCoordinates() {
   return [x, y];
 }
 
+const dotObservable = of(null)
+  .pipe(concatMap(() => timer(Math.random() * 1500)))
+  .pipe(repeat())
+  .pipe(map(() => createCoordinates()));
+
 function createDot(x, y) {
   const dot = document.createElement('div');
   dot.setAttribute('class', 'dot');
   dot.setAttribute('style', `background:${randomColor()};top:${y};left:${x}`);
   setTimeout(() => {
     dot.remove();
+    dots.shift();
   }, 1500);
   return dot;
 }
 
-const dotObservable = of(null)
-  .pipe(concatMap(() => timer(Math.random() * 1500)))
-  .pipe(repeat())
-  .pipe(map(() => createCoordinates()))
-
-dotObservable
-  .subscribe(coords => dots.push(coords));
-
-dotObservable
-  .pipe(map(coords => createDot(...coords)))
-  .subscribe(dotEl => document.body.insertAdjacentElement('afterbegin', dotEl));
+dotObservable.subscribe((coords) => {
+  dots.push(coords);
+  const dot = createDot(...coords);
+  document.body.insertAdjacentElement('afterbegin', dot);
+});
 
 function updateScore() {
   score += 1;
@@ -76,8 +76,8 @@ function compareDotAndClick(clickArray) {
   const [clickX, clickY] = clickArray;
   const matchedDot = dots.find(dot => {
     const [dotX, dotY] = dot;
-    const xMatch = clickX >= dotX && clickX <= dotX + 20;
-    const yMatch = clickY >= dotY && clickY <= dotY + 20;
+    const xMatch = clickX >= dotX - 40 && clickX <= dotX + 40;
+    const yMatch = clickY >= dotY - 40 && clickY <= dotY + 40;
     return xMatch && yMatch;
   });
   const note = createNote(clickX * clickY);

@@ -4,9 +4,10 @@ body {
 }
 
 .dot {
+  cursor: pointer;
   position: absolute;
-  height: 20px;
-  width: 20px;
+  height: 40px;
+  width: 40px;
   content: '';
   border-radius: 50%;
   animation: fade-in-out 1.5s ease-in-out;

@@ -12,7 +12,7 @@ function normalizeToOctave(num) {
 }
 
 function normalizeToDuration(num) {
-  return nr.wrap(0.5, 2, num);
+  return nr.wrap(0.5, 1, num);
 }
 
 function createNote(val) {
