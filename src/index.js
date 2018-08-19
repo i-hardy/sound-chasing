@@ -1,5 +1,5 @@
 import { fromEvent, of, timer } from 'rxjs';
-import { map, concatMap, throttleTime, repeat } from 'rxjs/operators';
+import { tap, map, concatMap, throttleTime, repeat } from 'rxjs/operators';
 import Tone from 'tone';
 import randomColor from 'randomcolor';
 
@@ -27,18 +27,13 @@ const monoSynth = new Tone.MonoSynth({
   }
 }).toMaster();
 
+const dots = [];
+
+let score = 0;
+
 const clickObservable = fromEvent(document, 'click')
-  .pipe(map(click => click.clientX * click.clientY))
-  .pipe(throttleTime(500))
-
-clickObservable.subscribe((val) => {
-  const note = createNote(val);
-  synth.triggerAttackRelease(...note);
-});
-
-const dotObservable = of(null)
-.pipe(concatMap(() => timer(Math.random() * 1500)))
-.pipe(repeat());
+  .pipe(map((click) => { return [click.clientX, click.clientY] }))
+  .pipe(throttleTime(500));
 
 const minXY = 20;
 const maxX = window.innerWidth;
@@ -60,9 +55,40 @@ function createDot(x, y) {
   return dot;
 }
 
-dotObservable.subscribe((val) => {
-  const [x, y] = createCoordinates();
-  const dot = createDot(x, y);
-  document.body.insertAdjacentElement('afterbegin', dot);
-  console.log(dot);
+const dotObservable = of(null)
+  .pipe(concatMap(() => timer(Math.random() * 1500)))
+  .pipe(repeat())
+  .pipe(map(() => createCoordinates()))
+
+dotObservable
+  .subscribe(coords => dots.push(coords));
+
+dotObservable
+  .pipe(map(coords => createDot(...coords)))
+  .subscribe(dotEl => document.body.insertAdjacentElement('afterbegin', dotEl));
+
+function updateScore() {
+  score += 1;
+  document.querySelector('#score').innerHTML = score;
+}
+
+function compareDotAndClick(clickArray) {
+  const [clickX, clickY] = clickArray;
+  const matchedDot = dots.find(dot => {
+    const [dotX, dotY] = dot;
+    const xMatch = clickX >= dotX && clickX <= dotX + 20;
+    const yMatch = clickY >= dotY && clickY <= dotY + 20;
+    return xMatch && yMatch;
+  });
+  const note = createNote(clickX * clickY);
+  if (matchedDot) {
+    updateScore();
+    monoSynth.triggerAttackRelease(...note);
+  } else {
+    synth.triggerAttackRelease(...note);
+  }
+}
+
+clickObservable.subscribe((val) => {
+  compareDotAndClick(val)
 });
