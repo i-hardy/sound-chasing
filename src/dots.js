@@ -2,7 +2,7 @@ import { timer } from 'rxjs';
 import { map, repeat, delay } from 'rxjs/operators';
 import randomColor from 'randomcolor';
 
-const dotTimeout = 900;
+const dotTimeout = 1000;
 
 function createCoordinates() {
   const minXY = 40;

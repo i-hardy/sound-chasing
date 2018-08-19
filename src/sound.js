@@ -8,7 +8,7 @@ function normalizeToNote(num) {
 }
 
 function normalizeToOctave(num) {
-  return nr.wrap(2, 6, num);
+  return nr.wrap(3, 7, num);
 }
 
 function normalizeToDuration(num) {
